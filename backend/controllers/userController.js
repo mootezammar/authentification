@@ -14,8 +14,8 @@ import { EMAIL_VERIFY_TEMPLATE , PASSWORD_RESET_TEMPLATE,WELCOME_EMAIL_TEMPLATE 
 const registerUser = async (req, res) => {
     try {
 
-        const { name, email, password } = req.body
-        if (!name || !password || !email) {
+        const { firstname,lastname, email, password,institution,yearofstudy,major } = req.body
+        if (!firstname || !lastname  ||!institution || !password || !email ||!major ||!yearofstudy) {
             return res.json({ success: false, message:'Missing Details'})
         }
         // validate email
@@ -33,9 +33,13 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt) 
         
         const userData = {
-            name,
+            firstname,
+            lastname,
             email,
-            password : hashedPassword
+            password: hashedPassword,
+            institution,
+            yearofstudy,
+            major
         }
 
         // save user in DB
@@ -54,7 +58,7 @@ const registerUser = async (req, res) => {
             to: email,
             subject: 'Welcome to our platform',
            // text: `Welcome. Your account has been created with email id : ${email}`,
-            html: WELCOME_EMAIL_TEMPLATE.replace('{{name}}', name).replace('{{email}}', email)
+            html: WELCOME_EMAIL_TEMPLATE.replace('{{name}}', firstname).replace('{{email}}', email)
         }
 
         await transporter.sendMail(mailOptions) 
@@ -259,5 +263,18 @@ const resetPassword = async (req, res) => {
     }
     
 }
+// api to get profile 
+const getprofile = async (req, res) => {
+    try {
+        const {userId} = req.body;
+        const user = await userModel.findById(userId).select('-password')
+  
+        res.json({ success: true, user })
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message })
 
-export {loginUser,registerUser,sendResetOtp,sendVerifyOtp,resetPassword,verifyEmail}
+  
+    }
+}
+export {loginUser,registerUser,sendResetOtp,sendVerifyOtp,resetPassword,verifyEmail,getprofile}
